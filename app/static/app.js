@@ -38,21 +38,24 @@ document.addEventListener('DOMContentLoaded', function () {
                     'font-size': '10px'
                 }
             })
-
         ]
     };
 
-    if (location.search.match('scroll')) {
-        options.minPxPerSec = 100;
-        options.scrollParent = true;
-    }
-
-    if (location.search.match('fill')) {
-        options.normalize = true;
-    }
-
     wavesurfer = WaveSurfer.create(options);
     wavesurfer.load('/audio/' + audio_name);
+
+    // load peak of backend generated
+    // wavesurfer.util
+    //     .fetchFile({
+    //         responseType: 'json',
+    //         url: 'rashomon.json'
+    //     })
+    //     .on('success', function (data) {
+    //         wavesurfer.load(
+    //             '../media/msw001_03_rashomon_akutagawa_mt_64kb.mp3',
+    //             data
+    //         );
+    //     });
 
     /* Regions */
     wavesurfer.on('ready', function () {
@@ -73,7 +76,7 @@ document.addEventListener('DOMContentLoaded', function () {
     wavesurfer.on('region-click', function (region, e) {
         if (e.shiftKey) {
             e.stopPropagation();
-            wavesurfer.skip(region.start - wavesurfer.getCurrentTime());
+            wavesurfer.skip(region.start - wavesurferGetCurrentTimeRound());
             region.play();
         }
     });
@@ -101,7 +104,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (e.shiftKey) {
                     // get the nearest prior region
                     let sortedRegions = sortRegions(wavesurfer.regions.list);
-                    let end = wavesurfer.getCurrentTime();
+                    let end = wavesurferGetCurrentTimeRound();
                     let priorRegion = null;
                     let start;
                     let r;
@@ -185,7 +188,7 @@ function saveAnnotationToServer() {
             return {
                 start: region.start,
                 end: region.end,
-                attributes: region.attributes,
+                // attributes: region.attributes,
                 data: region.data
             };
         })
@@ -313,7 +316,7 @@ function randomColor(alpha) {
 }
 
 function selectColor(who) {
-    let whos = ['teacher', 'student', 'other', 'silence'];
+    let whos = ['teacher', 'student', 'other'];
     let idx = -1;
     for (let i in whos) {
         if (who == whos[i]) {
@@ -324,8 +327,8 @@ function selectColor(who) {
         idx = whos.length;
     }
 
-    alpha = 0.5;
-    colors = [[229, 43, 80, alpha], [255, 191, 0, alpha], [153, 102, 204, alpha], [0, 127, 255, alpha], [150, 150, 150, alpha]];
+    alpha = 0.5
+    colors = [[229, 43, 80, alpha], [255, 191, 0, alpha], [153, 102, 204, alpha], [0, 127, 255, alpha]];
 
     return (
         'rgba(' +
@@ -415,4 +418,8 @@ function getUrlVars() {
         vars[key] = value;
     });
     return vars;
+}
+
+function wavesurferGetCurrentTimeRound() {
+    return wavesurfer.getCurrentTime().toFixed(2);
 }
